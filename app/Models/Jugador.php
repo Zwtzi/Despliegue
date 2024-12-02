@@ -13,8 +13,6 @@ class Jugador extends Model
     protected $table = "jugadores";
     protected $fillable = [
         'nombre',
-        'apellido_paterno',
-        'apellido_materno',
         'edad',
         'posicion',
         'id_equipo',
@@ -24,6 +22,9 @@ class Jugador extends Model
         'tarjetas_amarillas',
         'tarjetas_rojas',
         'faltas',
+        'minutos_jugados',
+        'partidos_jugados',
+        'goles_contra',
     ];
 
     public function equipo()

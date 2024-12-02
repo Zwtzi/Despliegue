@@ -10,6 +10,7 @@ use App\Http\Controllers\ArbitroController;
 use App\Http\Controllers\PartidosController;
 use App\Http\Controllers\TorneoController;
 use App\Http\Controllers\InstalacionController;
+use App\Http\Controllers\AdminController;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 
@@ -44,6 +45,8 @@ Route::get('/dashboard', function () {
             return redirect()->route('jugador.dashboard');
         case 4:
             return redirect()->route('arbitro.dashboard');
+        case 5:
+            return redirect()->route('admin.dashboard');
         default:
             return redirect('/')->with('error', 'Rol no válido.');
     }
@@ -116,11 +119,26 @@ Route::middleware(['auth', 'role:2'])->group(function () {
 
 
     Route::middleware(['auth', 'role:3'])->group(function () {
-        Route::get('/jugador/dashboard', [JugadorController::class, 'dashboard'])->name('jugador.dashboard');
+        Route::group(['prefix' => 'jugador'], function() {
+            Route::get('/dashboard', [JugadorController::class, 'dashboard'])->name('jugador.dashboard');
+            Route::get('/desempeño', [JugadorController::class, 'desempeño'])->name('jugador.desempeño');
+            Route::get('/{id}/Estadisticas_Equipo', [JugadorController::class, 'estadisticas_team'])->name('jugador.estadisticas_equipo');
     });
+});
 
     Route::middleware(['auth', 'role:4'])->group(function () {
         Route::get('/arbitro/dashboard', [ArbitroController::class, 'dashboard'])->name('arbitro.dashboard');
+    });
+
+    Route::middleware(['auth', 'role:5'])->group(function () {
+        Route::group(['prefix' => 'admin'], function() {
+            Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+           // Route::get('/create', [AdminController::class, 'create'])->name('admin.create');
+            Route::post('/store', [AdminController::class, 'store'])->name('admin.store');
+            Route::get('/edit/{id}', [AdminController::class, 'edit'])->name('admin.edit');
+            Route::put('/update/{id}', [AdminController::class, 'update'])->name('admin.update');
+            Route::delete('/destroy/{id}', [AdminController::class, 'destroy'])->name('admin.destroy');
+        });
     });
 
     // Rutas protegidas para el perfil del usuario
@@ -129,7 +147,6 @@ Route::middleware(['auth', 'role:2'])->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
-
 
     //Rutas danilingling para PDF REPORTES
         // JUGADORES
@@ -141,9 +158,6 @@ Route::middleware(['auth', 'role:2'])->group(function () {
     Route::get('/entrenador/instalaciones/buscar', [InstalacionController::class, 'buscar'])->name('instalaciones.buscar');
     Route::get('/entrenador/deporte/buscar', [DeporteController::class, 'buscar']);
     Route::get('/generar-pdf-instalacion', [App\Http\Controllers\InstalacionController::class, 'generarPDFInstalaciones'])->name('generar.pdf.instalaciones');
-
-
-
 
 
     require __DIR__ . '/auth.php';

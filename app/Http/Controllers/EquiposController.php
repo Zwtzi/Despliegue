@@ -16,21 +16,30 @@ class EquiposController extends Controller{
     {
         $validatedData = $request->validate([
             'nombre_equipo' => 'required|string|max:255',
-            'escudo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'patrocinador_equipo' => 'nullable|string|max:255',
+            'monto_patrocinador' => 'nullable|integer',
+            'escudos' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'deporte_id' => 'required|exists:deportes,id'
         ]);
 
+        try{
         // Almacenar el archivo de imagen
-        $path = $request->file('escudo')->store('public/escudos');
+        $path = $request->file('escudos')->store('public/escudos');
         $filename = basename($path);
 
         Equipo::create([
             'nombre_equipo' => $request->nombre_equipo,
-            'escudo' => $filename,
+            'patrocinador_equipo' => $request->patrocinador_equipo ?? 'Sin patrocinador',
+            'monto_patrocinador' => $request->monto_patrocinador ?? 0,
+            'escudos' => $filename,
             'id_deporte' => $request->deporte_id,
         ]);
 
-        return redirect()->route('equipos.create')->with('success', 'Equipo registrado exitosamente');
+
+        return redirect()->route('equipos.read')->with('success', 'Equipo registrado exitosamente');
+    } catch (\Exception $e){
+        dd($e->getMessage());
+    }
     }
 
 
@@ -42,27 +51,33 @@ class EquiposController extends Controller{
 
     public function update(Request $request, $id)
 {
+    $equipos = Equipo::all();
+
     $request->validate([
         'nombre_equipo' => 'required|string|max:255',
-        'escudo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'patrocinador_equipo' => 'nullable|string|max:255',
+            'monto_patrocinador' => 'nullable|integer',
+        'escudos' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
     $equipo = Equipo::findOrFail($id);
 
-    // Verificar si se subió un nuevo escudo
-    if ($request->hasFile('escudo')) {
-        // Eliminar el escudo anterior si existe
+    // Verificar si se subió un nuevo escudos
+    if ($request->hasFile('escudos')) {
+        // Eliminar el escudos anterior si existe
         if ($equipo->escudo) {
             Storage::delete('public/escudos/' . $equipo->escudo);
         }
 
-        // Subir el nuevo escudo
-        $path = $request->file('escudo')->store('public/escudos');
+        // Subir el nuevo escudos
+        $path = $request->file('escudos')->store('public/escudos');
         $equipo->escudo = basename($path);
     }
 
     // Actualizar los datos del equipo
     $equipo->nombre_equipo = $request->nombre_equipo;
+    $equipo->patrocinador_equipo = $request->patrocinador_equipo ?? 'Sin patrocinador';
+    $equipo->monto_patrocinador = $request->monto_patrocinador ?? 0;
     $equipo->save();
 
     return redirect()->route('equipos.read')->with('success', 'Equipo actualizado correctamente.');
@@ -72,7 +87,7 @@ class EquiposController extends Controller{
     public function destroy($id)
     {
         $equipo = Equipo::findOrFail($id);
-        Storage::delete('public/escudos/' . $equipo->escudo); // Eliminar escudo del equipo
+        Storage::delete('public/escudos/' . $equipo->escudo); // Eliminar escudos del equipo
         $equipo->delete();
         return redirect()->route('equipos.read')->with('success', 'Equipo actualizado con éxito');
     }

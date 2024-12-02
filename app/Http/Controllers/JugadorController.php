@@ -7,46 +7,43 @@ use App\Models\User;
 use App\Models\Jugador;
 use App\Models\Equipo;
 
-
-class JugadorController extends Controller{
-    public function dashboard(){ // este va a ser el nuevo index
-        return view("jugador.dashboard");
+class JugadorController extends Controller
+{
+    public function dashboard()
+    {
+        $usuario = auth()->user();
+        $jugadores = Jugador::where('nombre', $usuario->name)->get();
+        return view('jugador.dashboard', compact('jugadores'));
     }
 
     public function store(Request $request)
     {
         $validatedData = $request->validate([
             'nombre' => 'required|string|max:255',
-            'apellido_paterno' => 'required|string|max:255',
-            'apellido_materno' => 'required|string|max:255',
             'edad' => 'required|integer',
             'equipo_id' => 'required|exists:equipos,id',
             'posicion' => 'required|string|max:255',
-            // 'puntos' => 'required|integer',
-            // 'asistencias' => 'required|integer',
-            // 'tarjetas_rojas' => 'required|integer',
-            // 'tarjetas_amarillas' => 'required|integer',
-            // 'faltas' => 'required|integer',
+            'email' => 'required|email|unique:users,email', // Asegúrate de capturar el email
         ]);
 
-        Jugador::create([
+        // Crear el jugador
+        $jugador = Jugador::create([
             'nombre' => $request->nombre,
-            'apellido_paterno' => $request->apellido_paterno,
-            'apellido_materno' => $request->apellido_materno,
             'edad' => $request->edad,
             'id_equipo' => $request->equipo_id,
             'posicion' => $request->posicion,
-            // 'puntos' => $request->puntos,
-            // 'asistencias' => $request->asistencias,
-            // 'tarjetas_rojas' => $request->tarjetas_rojas,
-            // 'tarjetas_amarillas' => $request->tarjetas_amarillas,
-            // 'faltas' => $request->faltas,
-            // 'id_deporte' => $request->id_deporte,
         ]);
 
-        return redirect()->route('jugadores.create')->with('success', 'Jugador registrado exitosamente');
-    }
+        // Crear el usuario asociado al jugador
+        $user = User::create([
+            'name' => $request->nombre,
+            'email' => $request->email,
+            'password' => bcrypt('jugador123'), // Contraseña temporal
+            'rol_id' => 3, // Rol de jugador
+        ]);
 
+        return redirect()->route('jugador.read')->with('success', 'Jugador y usuario creados exitosamente');
+    }
 
     public function edit($id)
     {
@@ -58,8 +55,6 @@ class JugadorController extends Controller{
     {
         $request->validate([
             'nombre' => 'required',
-            'apellido_paterno' => 'required',
-            'apellido_materno' => 'required',
             'edad' => 'required|integer',
             'posicion' => 'required',
             'puntos' => 'required|integer',
@@ -72,8 +67,6 @@ class JugadorController extends Controller{
         $jugador = Jugador::findOrFail($id);
         $jugador->update([
             'nombre' => $request->nombre,
-            'apellido_paterno' => $request->apellido_paterno,
-            'apellido_materno' => $request->apellido_materno,
             'edad' => $request->edad,
             'posicion' => $request->posicion,
             'puntos' => $request->puntos,
@@ -105,12 +98,28 @@ class JugadorController extends Controller{
 
         return view('jugador.read', compact('jugadores'));
     }
+    public function estadisticas_team($id)
+    {
+        // Obtener el equipo según su ID
+        $equipo = Equipo::findOrFail($id);
 
+        // Obtener los jugadores asociados al equipo
+        $jugadores = Jugador::where('id_equipo', $id)->get();
+
+        // Retornar la vista con los datos del equipo y sus jugadores
+        return view('jugador.estadisticas_equipo', compact('equipo', 'jugadores'));
+    }
+
+    public function desempeño()
+    {
+        $jugadores = Jugador::all();
+
+        return view('jugador.desempeño', compact('jugadores'));
+    }
     public function buscar(Request $request)
     {
         $nombre = $request->input('nombre');
-        $jugadores = Jugador::where('nombre', 'LIKE', "%$nombre%")
-            ->get();
+        $jugadores = Jugador::where('nombre', 'LIKE', "%$nombre%")->get();
 
         return response()->json($jugadores);
     }
@@ -123,7 +132,4 @@ class JugadorController extends Controller{
 
         return $pdf->download('jugadores.pdf');
     }
-
-
 }
-

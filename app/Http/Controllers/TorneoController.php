@@ -15,19 +15,40 @@ class TorneoController extends Controller{
         $validatedData = $request->validate([
             'nombre_torneo' => 'required|string|max:255',
             'tipo_torneo' => 'required|string|max:255',
+<<<<<<< HEAD
             'numero_equipos' => 'required|integer',
             'deporte_id' => 'required|integer',
         ]);
 
         Torneo::create([
             'nombre_torneo'  => $request->nombre_torneo,
+=======
+            'patrocinador_torneo' => 'nullable|string|max:255',
+            'monto_patrocinador' => 'nullable|integer',
+            'numero_equipos' => 'required|integer',
+            'deporte_id' => 'required|integer',
+        ]);
+        try{
+
+        Torneo::create([
+            'nombre_torneo'  => $request->nombre_torneo,
+            'patrocinador_torneo' => $request->patrocinador_torneo ?? 'Sin patrocinador',
+            'monto_patrocinador' => $request->monto_patrocinador ?? 0,
+>>>>>>> master
             'tipo_torneo'  => $request->tipo_torneo,
             'numero_equipos'  => $request->numero_equipos,
             'deporte_id'  => $request->deporte_id,
 
         ]);
 
+<<<<<<< HEAD
         return redirect()->route('torneo.create')->with('success', 'Torneo registrado exitosamente');
+=======
+        return redirect()->route('torneo.read')->with('success', 'Torneo registrado exitosamente');
+    } catch (\Exception $e){
+        dd($e->getMessage());
+    }
+>>>>>>> master
     }
 
 
@@ -42,6 +63,11 @@ class TorneoController extends Controller{
         $request->validate([
             'nombre_torneo' => 'required',
             'tipo_torneo' => 'required',
+<<<<<<< HEAD
+=======
+            'patrocinador_torneo' => 'nullable|string|max:255',
+            'monto_patrocinador' => 'nullable|integer',
+>>>>>>> master
             'numero_equipos' => 'required|integer',
             'deporte_id' => 'required|integer',
 
@@ -51,11 +77,21 @@ class TorneoController extends Controller{
         $torneo->update([
             'nombre_torneo' => $request->nombre_torneo,
             'tipo_torneo' => $request->tipo_torneo,
+<<<<<<< HEAD
             'numero_equipos' => $request->numero_equipos,
             'deporte_id'  => $request->deporte_id,
 
         ]);
 
+=======
+            'patrocinador_torneo'=>$request->patrocinador_torneo ?? 'Sin patrocinador',
+            'monto_patrocinador' => $request->monto_patrocinador ?? 0,
+            'numero_equipos' => $request->numero_equipos,
+
+            'deporte_id'  => $request->deporte_id,
+
+        ]);
+>>>>>>> master
         return redirect()->route('torneo.read')->with('success', 'Torneo actualizado con éxito');
     }
 
