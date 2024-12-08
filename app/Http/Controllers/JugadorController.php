@@ -101,7 +101,7 @@ class JugadorController extends Controller
         return view('jugador.read', compact('jugadores'));
     }
 
-    public function estadisticas_team($id)
+   public function estadisticas_team($id)
     {
         // Obtener el equipo por ID
         $equipo = Equipo::findOrFail($id);
